@@ -2586,6 +2586,18 @@ xtensa_output_literal (FILE *file, rtx x, enum machine_mode mode, int labelno)
     }
 }
 
+static bool
+xtensa_call_save_reg(int regno)
+{
+  if (TARGET_WINDOWED_ABI)
+    return false;
+
+  if (regno == A0_REG)
+    return crtl->profile || df_regs_ever_live_p (regno);
+
+  return !fixed_regs[regno] && !call_used_regs[regno] &&
+    df_regs_ever_live_p (regno);
+}
 
 /* Return the bytes needed to compute the frame pointer from the current
    stack pointer.  */
@@ -2605,8 +2617,7 @@ compute_frame_size (int size)
   xtensa_callee_save_size = 0;
   for (regno = 0; regno < FIRST_PSEUDO_REGISTER; ++regno)
     {
-      if ((regno == A0_REG || (!fixed_regs[regno] && !call_used_regs[regno])) &&
-	  df_regs_ever_live_p (regno))
+      if (xtensa_call_save_reg(regno))
 	xtensa_callee_save_size += UNITS_PER_WORD;
     }
 
@@ -2692,8 +2703,7 @@ xtensa_expand_prologue (void)
 
   for (regno = 0; regno < FIRST_PSEUDO_REGISTER; ++regno)
     {
-      if ((regno == A0_REG || (!fixed_regs[regno] && !call_used_regs[regno])) &&
-	  df_regs_ever_live_p (regno))
+      if (xtensa_call_save_reg(regno))
         {
 	  rtx x = gen_rtx_PLUS (Pmode, stack_pointer_rtx, GEN_INT (offset));
 
@@ -2780,8 +2790,7 @@ xtensa_expand_epilogue (void)
 
   for (regno = 0; regno < FIRST_PSEUDO_REGISTER; ++regno)
     {
-      if ((regno == A0_REG || (!fixed_regs[regno] && !call_used_regs[regno])) &&
-	  df_regs_ever_live_p (regno))
+      if (xtensa_call_save_reg(regno))
         {
 	  rtx x = gen_rtx_PLUS (Pmode, stack_pointer_rtx, GEN_INT (offset));
 
