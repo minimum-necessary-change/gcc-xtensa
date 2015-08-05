@@ -477,6 +477,9 @@ xtensa_valid_move (enum machine_mode mode, rtx *operands)
     {
       int dst_regnum = xt_true_regnum (operands[0]);
 
+      if (xtensa_tls_referenced_p (operands[1]))
+	return FALSE;
+
       /* The stack pointer can only be assigned with a MOVSP opcode.  */
       if (dst_regnum == STACK_POINTER_REGNUM)
 	return (mode == SImode
@@ -1044,7 +1047,7 @@ xtensa_emit_move_sequence (rtx *operands, enum machine_mode mode)
 	  return 1;
 	}
 
-      if (! TARGET_CONST16)
+      if (! TARGET_AUTO_LITPOOLS && ! TARGET_CONST16)
 	{
 	  src = force_const_mem (SImode, src);
 	  operands[1] = src;
@@ -2426,6 +2429,20 @@ print_operand (FILE *file, rtx x, int letter)
 	  fputs (letter == 't' ? "@h" : "@l", file);
 	}
       break;
+
+    case 'y':
+      if (GET_CODE (x) == CONST_DOUBLE &&
+	  GET_MODE (x) == SFmode)
+	{
+	  REAL_VALUE_TYPE r;
+	  long l;
+	  REAL_VALUE_FROM_CONST_DOUBLE (r, x);
+	  REAL_VALUE_TO_TARGET_SINGLE (r, l);
+	  fprintf (file, "0x%08lx", l);
+	  break;
+	}
+
+      /* fall through */
 
     default:
       if (GET_CODE (x) == REG || GET_CODE (x) == SUBREG)
