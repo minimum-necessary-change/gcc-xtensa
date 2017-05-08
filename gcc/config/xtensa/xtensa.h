@@ -19,27 +19,12 @@ along with GCC; see the file COPYING3.  If not see
 <http://www.gnu.org/licenses/>.  */
 
 /* Get Xtensa configuration settings */
-#include "xtensa-config.h"
+#include "xtensa-dynconfig.h"
 
 /* External variables defined in xtensa.c.  */
 
 /* Macros used in the machine description to select various Xtensa
    configuration options.  */
-#ifndef XCHAL_HAVE_MUL32_HIGH
-#define XCHAL_HAVE_MUL32_HIGH 0
-#endif
-#ifndef XCHAL_HAVE_RELEASE_SYNC
-#define XCHAL_HAVE_RELEASE_SYNC 0
-#endif
-#ifndef XCHAL_HAVE_S32C1I
-#define XCHAL_HAVE_S32C1I 0
-#endif
-#ifndef XCHAL_HAVE_THREADPTR
-#define XCHAL_HAVE_THREADPTR 0
-#endif
-#ifndef XCHAL_HAVE_FP_POSTINC
-#define XCHAL_HAVE_FP_POSTINC 0
-#endif
 #define TARGET_BIG_ENDIAN	XCHAL_HAVE_BE
 #define TARGET_DENSITY		XCHAL_HAVE_DENSITY
 #define TARGET_MAC16		XCHAL_HAVE_MAC16

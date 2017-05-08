@@ -17,3 +17,8 @@
 # <http://www.gnu.org/licenses/>.
 
 $(out_object_file): gt-xtensa.h
+
+xtensa-config.o: $(srcdir)/config/xtensa/xtensa-config.c \
+  $(CONFIG_H) $(SYSTEM_H) $(srcdir)/../include/xtensa-dynconfig.h \
+  $(srcdir)/../include/xtensa-config.h
+	$(COMPILER) -c $(ALL_COMPILERFLAGS) $(ALL_CPPFLAGS) $<
