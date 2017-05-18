@@ -63,6 +63,7 @@ along with GCC; see the file COPYING3.  If not see
 /* Target CPU builtins.  */
 #define TARGET_CPU_CPP_BUILTINS()					\
   do {									\
+    const char **builtin;						\
     builtin_assert ("cpu=xtensa");					\
     builtin_assert ("machine=xtensa");					\
     builtin_define ("__xtensa__");					\
@@ -72,6 +73,8 @@ along with GCC; see the file COPYING3.  If not see
     builtin_define (TARGET_BIG_ENDIAN ? "__XTENSA_EB__" : "__XTENSA_EL__"); \
     if (!TARGET_HARD_FLOAT)						\
       builtin_define ("__XTENSA_SOFT_FLOAT__");				\
+    for (builtin = xtensa_get_config_strings (); *builtin; ++builtin)	\
+      builtin_define (*builtin);					\
   } while (0)
 
 #define CPP_SPEC " %(subtarget_cpp_spec) "

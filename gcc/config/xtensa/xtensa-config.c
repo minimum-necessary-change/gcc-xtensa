@@ -13,6 +13,17 @@
 
 static struct xtensa_config xtensa_defconfig = XTENSA_CONFIG_INITIALIZER;
 
+#define _STRINGIFY(a) #a
+#define STRINGIFY(a) _STRINGIFY(a)
+
+#undef XTENSA_CONFIG_ENTRY
+#define XTENSA_CONFIG_ENTRY(a) "__" #a "=" STRINGIFY(a)
+
+static const char *xtensa_config_strings[] = {
+    XTENSA_CONFIG_ENTRY_LIST,
+    NULL,
+};
+
 #if !defined (HAVE_DLFCN_H) && defined (_WIN32)
 
 #define RTLD_LAZY 0      /* Dummy value.  */
@@ -114,4 +125,15 @@ struct xtensa_config *xtensa_get_config (void)
       abort ();
     }
   return config;
+}
+
+const char **xtensa_get_config_strings (void)
+{
+  static const char **config_strings;
+
+  if (!config_strings)
+    config_strings = (const char **) xtensa_load_config ("xtensa_config_strings",
+							 &xtensa_config_strings);
+
+  return config_strings;
 }
