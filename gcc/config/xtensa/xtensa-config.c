@@ -4,7 +4,45 @@
 #include "xtensa-config.h"
 #include "xtensa-dynconfig.h"
 
+#if defined (HAVE_DLFCN_H)
+#include <dlfcn.h>
+#elif defined (_WIN32)
+#include <windows.h>
+#define ENABLE_PLUGIN
+#endif
+
 static struct xtensa_config xtensa_defconfig = XTENSA_CONFIG_INITIALIZER;
+
+#if !defined (HAVE_DLFCN_H) && defined (_WIN32)
+
+#define RTLD_LAZY 0      /* Dummy value.  */
+
+static void *
+dlopen (const char *file, int mode ATTRIBUTE_UNUSED)
+{
+  return LoadLibrary (file);
+}
+
+static void *
+dlsym (void *handle, const char *name)
+{
+  return (void *) GetProcAddress ((HMODULE) handle, name);
+}
+
+static int ATTRIBUTE_UNUSED
+dlclose (void *handle)
+{
+  FreeLibrary ((HMODULE) handle);
+  return 0;
+}
+
+static const char *
+dlerror (void)
+{
+  return "Unable to load DLL.";
+}
+
+#endif /* !defined (HAVE_DLFCN_H) && defined (_WIN32)  */
 
 void *xtensa_load_config (const char *name ATTRIBUTE_UNUSED, void *def)
 {
