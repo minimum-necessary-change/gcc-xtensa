@@ -610,7 +610,7 @@ uptr internal_sigaltstack(const void *ss, void *oss) {
 }
 
 int internal_fork() {
-#if SANITIZER_USES_CANONICAL_LINUX_SYSCALLS
+#if defined(__xtensa__) || SANITIZER_USES_CANONICAL_LINUX_SYSCALLS
   return internal_syscall(SYSCALL(clone), SIGCHLD, 0);
 #else
   return internal_syscall(SYSCALL(fork));
@@ -1377,6 +1377,17 @@ void GetPcSpBp(void *context, uptr *pc, uptr *sp, uptr *bp) {
 # endif
   *bp = ucontext->uc_mcontext.gregs[11];
   *sp = ucontext->uc_mcontext.gregs[15];
+#elif defined(__xtensa__)
+  ucontext_t *ucontext = (ucontext_t*)context;
+  *pc = ucontext->uc_mcontext.sc_pc;
+  *sp = ucontext->uc_mcontext.sc_a[1];
+#if defined (__XTENSA_WINDOWED_ABI__)
+  *bp = ucontext->uc_mcontext.sc_a[7];
+#elif defined (__XTENSA_CALL0_ABI__)
+  *bp = ucontext->uc_mcontext.sc_a[15];
+#else
+#error "Unsupported Xtensa ABI"
+#endif
 #else
 # error "Unsupported arch"
 #endif
