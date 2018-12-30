@@ -2858,6 +2858,24 @@ complain_about_unrecognized_member (tree access_path, tree name,
     }
 }
 
+static bool confused_decl_p (tree object_type)
+{
+  function_args_iterator args_iter;
+  tree t;
+  int i = 0;
+
+  if (TREE_CODE (object_type) != FUNCTION_TYPE
+      || ! prototype_p (object_type))
+    return false;
+
+  FOREACH_FUNCTION_ARGS (object_type, t, args_iter)
+    {
+      if (i++ || t != void_type_node)
+	return false;
+    }
+  return true;
+}
+
 /* This function is called by the parser to process a class member
    access expression of the form OBJECT.NAME.  NAME is a node used by
    the parser to represent a name; it is not yet a DECL.  It may,
@@ -2934,6 +2952,16 @@ finish_class_member_access_expr (cp_expr object, tree name, bool template_p,
 	    error ("request for member %qD in %qE, which is of pointer "
 		   "type %qT (maybe you meant to use %<->%> ?)",
 		   name, object.get_value (), object_type);
+	  else if (confused_decl_p (object_type))
+	    {
+	      tree fn = get_first_fn (object.get_value());
+	      auto_diagnostic_group d;
+	      error ("request for member %qD in %qE, which is of functional "
+		     "type %qT", name, object.get_value (), object_type);
+	      inform (DECL_SOURCE_LOCATION(fn),
+		      G_("%q#D is a function declaration, not a default-constructed object"),
+		      fn);
+	    }
 	  else
 	    error ("request for member %qD in %qE, which is of non-class "
 		   "type %qT", name, object.get_value (), object_type);
